@@ -29,8 +29,6 @@
 #include <sstream>
 #include <vector>
 
-#include <sodium.h>
-
 
 typedef uint256 ChainCode;
 

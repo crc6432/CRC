@@ -1160,7 +1160,6 @@ if test x$use_pkgconfig = xyes; then
         if test x$TARGET_OS != xwindows; then
           PKG_CHECK_MODULES([EVENT_PTHREADS], [libevent_pthreads],, [AC_MSG_ERROR(libevent_pthreads not found.)])
         fi
-        PKG_CHECK_MODULES([SODIUM], [libsodium],, [AC_MSG_ERROR(libsodium not found.)])
       fi
 
       if test "x$use_zmq" = "xyes"; then
@@ -1182,8 +1181,6 @@ else
     if test x$TARGET_OS != xwindows; then
       AC_CHECK_LIB([event_pthreads],[main],EVENT_PTHREADS_LIBS=-levent_pthreads,AC_MSG_ERROR(libevent_pthreads missing))
     fi
-    AC_CHECK_HEADER([sodium/core.h],, AC_MSG_ERROR(libsodium headers missing),)
-    AC_CHECK_LIB([sodium],[main],SODIUM_LIBS=-lsodium,AC_MSG_ERROR(libsodium missing))
   fi
 
   if test "x$use_zmq" = "xyes"; then
@@ -1270,27 +1267,6 @@ fi
 AM_CONDITIONAL([EMBEDDED_UNIVALUE],[test x$need_bundled_univalue = xyes])
 AC_SUBST(UNIVALUE_CFLAGS)
 AC_SUBST(UNIVALUE_LIBS)
-
-RUST_LIBS=""
-case $host in
-  *mingw*)
-    RUST_LIBS="$RUST_LIBS -luserenv"
-    ;;
-  *)
-    RUST_LIBS="$RUST_LIBS -ldl"
-    ;;
-esac
-
-if test -z "$RUST_TARGET"; then
-  AC_MSG_WARN([RUST_TARGET not set, assuming native build])
-fi
-AM_CONDITIONAL([HAVE_RUST_TARGET], [test -n "$RUST_TARGET"])
-
-# Additional Zcash flags
-AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],[CXXFLAGS="$CXXFLAGS -fno-strict-aliasing"])
-AX_CHECK_COMPILE_FLAG([-Wno-builtin-declaration-mismatch],[CXXFLAGS="$CXXFLAGS -Wno-builtin-declaration-mismatch"],,[[$CXXFLAG_WERROR]])
-
-LIBZCASH_LIBS="$BOOST_SYSTEM_LIB $SODIUM_LIBS $RUST_LIBS"
 
 AC_MSG_CHECKING([whether to build pivxd])
 AM_CONDITIONAL([BUILD_BITCOIND], [test x$build_bitcoind = xyes])
@@ -1543,9 +1519,7 @@ AC_SUBST(NATPMP_CPPFLAGS)
 AC_SUBST(NATPMP_LIBS)
 AC_SUBST(EVENT_LIBS)
 AC_SUBST(EVENT_PTHREADS_LIBS)
-AC_SUBST(SODIUM_LIBS)
 AC_SUBST(ZMQ_LIBS)
-AC_SUBST(LIBZCASH_LIBS)
 AC_SUBST(QR_LIBS)
 AC_SUBST(HAVE_GMTIME_R)
 AC_SUBST(HAVE_FDATASYNC)

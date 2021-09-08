@@ -1,5 +1,4 @@
-packages:= libevent gmp $(zcash_packages) libsodium
-native_packages := native_rust
+packages:= libevent gmp
 
 qt_packages = qrencode zlib
 

@@ -36,13 +36,6 @@ LIBBITCOIN_CRYPTO=crypto/libbitcoin_crypto.a
 LIBBITCOIN_ZEROCOIN=libzerocoin/libbitcoin_zerocoin.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
-LIBSAPLING=libsapling.a
-LIBCHIABLS=chiabls/libchiabls.la
-if ENABLE_ONLINE_RUST
-LIBRUSTZCASH=$(top_builddir)/target/release/librustzcash.a
-else
-LIBRUSTZCASH=$(top_builddir)/target/$(RUST_TARGET)/release/librustzcash.a
-endif
 
 if ENABLE_ZMQ
 LIBBITCOIN_ZMQ=libbitcoin_zmq.a
@@ -54,55 +47,9 @@ if ENABLE_WALLET
 LIBBITCOIN_WALLET=libbitcoin_wallet.a
 endif
 
-BLS_LIBS = $(LIBCHIABLS)
-
-RUST_ENV_VARS = RUSTC="$(RUSTC)" TERM=dumb
-RUST_BUILD_OPTS = --release
-
-if ENABLE_ONLINE_RUST
-# Ensure that .cargo/config does not exist
-CARGO_CONFIGURED = $(top_srcdir)/.cargo/.configured-for-online
-$(CARGO_CONFIGURED):
-	$(AM_V_at)rm -f $(top_srcdir)/.cargo/.configured-for-offline $(top_srcdir)/.cargo/config
-	$(AM_V_at)touch $@
-
-else
-# Enable dependency vendoring
-RUST_BUILD_OPTS += --locked --offline
-if HAVE_RUST_TARGET
-RUST_BUILD_OPTS += --target $(RUST_TARGET)
-endif
-
-CARGO_CONFIGURED = $(top_srcdir)/.cargo/.configured-for-offline
-$(CARGO_CONFIGURED): $(top_srcdir)/.cargo/config.offline
-	$(AM_V_at)rm -f $(top_srcdir)/.cargo/.configured-for-online
-	$(AM_V_at)cp $< $(top_srcdir)/.cargo/config
-	$(AM_V_at)echo "directory = \"$(RUST_VENDORED_SOURCES)\"" >> $(top_srcdir)/.cargo/config
-	$(AM_V_at)touch $@
-endif
-
-cargo-build: $(CARGO_CONFIGURED)
-	$(RUST_ENV_VARS) $(CARGO) build $(RUST_BUILD_OPTS) --manifest-path $(top_srcdir)/Cargo.toml
-
-if TARGET_WINDOWS
-LIBRUSTZCASH_WIN=$(top_builddir)/target/$(RUST_TARGET)/release/rustzcash.lib
-
-$(LIBRUSTZCASH_WIN): cargo-build
-
-# This ensures that the Rust library is correctly linked in by libtool.
-# See https://github.com/rust-lang/rust/issues/69904 for the underlying cause.
-$(LIBRUSTZCASH): $(LIBRUSTZCASH_WIN)
-	$(AM_V_at)cp $< $@
-
-else
-$(LIBRUSTZCASH): cargo-build
-endif
-
 $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(wildcard secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
-$(LIBCHIABLS):
-	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C chiabls
 
 # Make is not made aware of per-object dependencies to avoid limiting building parallelization
 # But to build the less dependent modules first, we manually select their order here:
@@ -114,8 +61,7 @@ EXTRA_LIBRARIES += \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_CLI) \
   $(LIBBITCOIN_WALLET) \
-  $(LIBBITCOIN_ZMQ) \
-  $(LIBSAPLING)
+  $(LIBBITCOIN_ZMQ)
 
 lib_LTLIBRARIES = $(LIBBITCOINCONSENSUS)
 
@@ -635,9 +581,7 @@ pivxd_LDADD = \
   $(LIBLEVELDB) \
   $(LIBLEVELDB_SSE42) \
   $(LIBMEMENV) \
-  $(LIBSECP256K1) \
-  $(LIBRUSTZCASH) \
-  $(LIBZCASH_LIBS)
+  $(LIBSECP256K1)
 
 pivxd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(MINIUPNPC_LIBS) $(NATPMP_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) $(BLS_LIBS)
 
@@ -655,10 +599,7 @@ pivx_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
-  $(LIBBITCOIN_CRYPTO) \
-  $(LIBSAPLING) \
-  $(LIBRUSTZCASH) \
-  $(LIBZCASH_LIBS)
+  $(LIBBITCOIN_CRYPTO)
 
 pivx_cli_LDADD += $(BOOST_LIBS) $(EVENT_LIBS) $(BLS_LIBS)
 #
@@ -679,10 +620,7 @@ pivx_tx_LDADD = \
   $(LIBBITCOIN_ZEROCOIN) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO) \
-  $(LIBSECP256K1) \
-  $(LIBSAPLING) \
-  $(LIBRUSTZCASH) \
-  $(LIBZCASH_LIBS)
+  $(LIBSECP256K1)
 
 pivx_tx_LDADD += $(BOOST_LIBS) $(BLS_LIBS)
 #
