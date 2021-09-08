@@ -161,30 +161,6 @@ struct Params {
         return (contextHeight - utxoFromBlockHeight >= nStakeMinDepth);
     }
 
-
-    /*
-     * (Legacy) Zerocoin consensus params
-     */
-    std::string ZC_Modulus;  // parsed in Zerocoin_Params (either as hex or dec string)
-    int ZC_MaxPublicSpendsPerTx;
-    int ZC_MaxSpendsPerTx;
-    int ZC_MinMintConfirmations;
-    CAmount ZC_MinMintFee;
-    int ZC_MinStakeDepth;
-    int ZC_TimeStart;
-    int ZC_HeightStart;
-
-    libzerocoin::ZerocoinParams* Zerocoin_Params(bool useModulusV1) const
-    {
-        static CBigNum bnHexModulus = 0;
-        if (!bnHexModulus) bnHexModulus.SetHex(ZC_Modulus);
-        static libzerocoin::ZerocoinParams ZCParamsHex = libzerocoin::ZerocoinParams(bnHexModulus);
-        static CBigNum bnDecModulus = 0;
-        if (!bnDecModulus) bnDecModulus.SetDec(ZC_Modulus);
-        static libzerocoin::ZerocoinParams ZCParamsDec = libzerocoin::ZerocoinParams(bnDecModulus);
-        return (useModulusV1 ? &ZCParamsHex : &ZCParamsDec);
-    }
-
     /**
      * Returns true if the given network upgrade is active as of the given block
      * height. Caller must check that the height is >= 0 (and handle unknown
