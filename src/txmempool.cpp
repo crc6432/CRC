@@ -31,8 +31,6 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef& _tx, const CAmount& _nFe
 {
     nTxSize = ::GetSerializeSize(*_tx, PROTOCOL_VERSION);
     nUsageSize = _tx->DynamicMemoryUsage();
-    hasZerocoins = _tx->ContainsZerocoins();
-    m_isShielded = _tx->IsShieldedTx();
 
     nCountWithDescendants = 1;
     nSizeWithDescendants = nTxSize;
@@ -438,7 +436,7 @@ bool CTxMemPool::addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry,
 
     const CTransaction& tx = newit->GetTx();
     std::set<uint256> setParentTransactions;
-    if(!tx.HasZerocoinSpendInputs()) {
+    if(true) {
         for (unsigned int i = 0; i < tx.vin.size(); i++) {
             mapNextTx.insert(std::make_pair(&tx.vin[i].prevout, newit->GetSharedTx()));
             setParentTransactions.insert(tx.vin[i].prevout.hash);
@@ -910,7 +908,6 @@ void CTxMemPool::check(const CCoinsViewCache* pcoins) const
         setEntries setParentCheck;
         int64_t parentSizes = 0;
         unsigned int parentSigOpCount = 0;
-        bool fHasZerocoinSpends = false;
         for (const CTxIn& txin : tx.vin) {
             // Check that every mempool transaction's inputs refer to available coins, or other mempool tx's.
             indexed_transaction_set::const_iterator it2 = mapTx.find(txin.prevout.hash);
@@ -922,7 +919,7 @@ void CTxMemPool::check(const CCoinsViewCache* pcoins) const
                     parentSizes += it2->GetTxSize();
                     parentSigOpCount += it2->GetSigOpCount();
                 }
-            } else if(!txin.IsZerocoinSpend() && !txin.IsZerocoinPublicSpend()) {
+            } else if (true) {
                 assert(pcoins->HaveCoin(txin.prevout));
             } else {
                 fHasZerocoinSpends = true;

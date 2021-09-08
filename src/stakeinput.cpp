@@ -22,11 +22,6 @@ static bool HasStakeMinAgeOrDepth(int nHeight, uint32_t nTime, const CBlockIndex
 
 CPivStake* CPivStake::NewPivStake(const CTxIn& txin, int nHeight, uint32_t nTime)
 {
-    if (txin.IsZerocoinSpend()) {
-        error("%s: unable to initialize CPivStake from zerocoin spend", __func__);
-        return nullptr;
-    }
-
     // Look for the stake input in the coins cache first
     const Coin& coin = pcoinsTip->AccessCoin(txin.prevout);
     if (!coin.IsSpent()) {

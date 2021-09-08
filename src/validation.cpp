@@ -22,14 +22,11 @@
 #include "consensus/merkle.h"
 #include "consensus/tx_verify.h"
 #include "consensus/validation.h"
-#include "consensus/zerocoin_verify.h"
-#include "evo/specialtx.h"
 #include "flatfile.h"
 #include "guiinterface.h"
 #include "init.h"
 #include "invalid.h"
 #include "interfaces/handler.h"
-#include "legacy/validation_zerocoin_legacy.h"
 #include "kernel.h"
 #include "masternode-payments.h"
 #include "masternode-sync.h"
@@ -206,9 +203,7 @@ CBlockIndex* GetChainTip()
 std::unique_ptr<CCoinsViewDB> pcoinsdbview;
 std::unique_ptr<CCoinsViewCache> pcoinsTip;
 std::unique_ptr<CBlockTreeDB> pblocktree;
-std::unique_ptr<CZerocoinDB> zerocoinDB;
 std::unique_ptr<CSporkDB> pSporkDB;
-std::unique_ptr<AccumulatorCache> accumulatorCache;
 
 enum FlushStateMode {
     FLUSH_STATE_NONE,
@@ -1689,12 +1684,6 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     nTimeIndex += nTime4 - nTime3;
     LogPrint(BCLog::BENCH, "    - Index writing: %.2fms [%.2fs]\n", 0.001 * (nTime4 - nTime3), nTimeIndex * 0.000001);
 
-    if (accumulatorCache && pindex->nHeight > consensus.height_last_ZC_AccumCheckpoint + 100) {
-        // 100 blocks After last Checkpoint block, wipe the checksum database and cache
-        accumulatorCache->Wipe();
-        accumulatorCache.reset();
-    }
-
     // 100 blocks after the last invalid out, clean the map contents
     if (pindex->nHeight == consensus.height_last_invalid_UTXO + 100) {
         invalid_out::setInvalidOutPoints.clear();
@@ -1771,8 +1760,6 @@ bool static FlushStateToDisk(CValidationState& state, FlushStateMode mode)
                     return AbortNode(state, "Files to write to block index database");
                 }
             }
-            // Flush zerocoin accumulator checkpoints cache
-            if (accumulatorCache) accumulatorCache->Flush();
 
             nLastWrite = nNow;
         }

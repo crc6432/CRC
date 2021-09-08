@@ -40,9 +40,7 @@
 
 class CBlockIndex;
 class CBlockTreeDB;
-class CBudgetManager;
 class CCoinsViewDB;
-class CZerocoinDB;
 class CSporkDB;
 class CBloomFilter;
 class CInv;

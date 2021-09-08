@@ -114,10 +114,6 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-        if(nVersion > 3 && nVersion < 7)
-            block.nAccumulatorCheckpoint = nAccumulatorCheckpoint;
-        if (nVersion >= 8)
-            block.hashFinalSaplingRoot   = hashFinalSaplingRoot;
         return block;
     }
 
