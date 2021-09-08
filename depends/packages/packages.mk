@@ -1,4 +1,4 @@
-packages:= libevent gmp
+packages:= boostclibevent gmp
 
 qt_packages = qrencode zlib
 
