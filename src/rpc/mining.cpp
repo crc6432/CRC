@@ -67,7 +67,7 @@ UniValue generateBlocks(const Consensus::Params& consensus,
 
         // Check PoS if needed.
         if (!fPoS)
-            fPoS = consensus.NetworkUpgradeActive(nHeight + 1, Consensus::UPGRADE_POS);
+            fPoS = true;
     }
 
     const int nGenerated = blockHashes.size();

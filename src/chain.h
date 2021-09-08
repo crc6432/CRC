@@ -320,14 +320,9 @@ public:
             READWRITE(nMint);
             READWRITE(nMoneySupply);
             READWRITE(obj.nFlags);
-            if (!Params().GetConsensus().NetworkUpgradeActive(obj.nHeight, Consensus::UPGRADE_V3_4)) {
-                uint64_t nStakeModifier = 0;
-                READWRITE(nStakeModifier);
-                SER_READ(obj, obj.SetStakeModifier(nStakeModifier, obj.GeneratedStakeModifier()));
-            } else {
-                uint256 nStakeModifierV2;
-                READWRITE(nStakeModifierV2);
-                SER_READ(obj, obj.SetStakeModifier(nStakeModifierV2));
+            uint256 nStakeModifierV2;
+            READWRITE(nStakeModifierV2);
+            SER_READ(obj, obj.SetStakeModifier(nStakeModifierV2));
             }
             if (obj.IsProofOfStake()) {
                 COutPoint prevoutStake;

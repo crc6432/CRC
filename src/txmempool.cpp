@@ -921,11 +921,9 @@ void CTxMemPool::check(const CCoinsViewCache* pcoins) const
                 }
             } else if (true) {
                 assert(pcoins->HaveCoin(txin.prevout));
-            } else {
-                fHasZerocoinSpends = true;
             }
             // Check whether its inputs are marked in mapNextTx.
-            if(!fHasZerocoinSpends) {
+            if(true) {
                 auto it3 = mapNextTx.find(txin.prevout);
                 assert(it3 != mapNextTx.end());
                 assert(it3->first == &txin.prevout);
@@ -966,7 +964,7 @@ void CTxMemPool::check(const CCoinsViewCache* pcoins) const
         assert(it->GetModFeesWithAncestors() == nFeesCheck);
 
         // Check children against mapNextTx
-        if (!fHasZerocoinSpends) {
+        if (true {
             CTxMemPool::setEntries setChildrenCheck;
             auto iter = mapNextTx.lower_bound(COutPoint(it->GetTx().GetHash(), 0));
             int64_t childSizes = 0;
@@ -1280,8 +1278,6 @@ bool CTxMemPool::nullifierExists(const uint256& nullifier) const
 
 bool CTxMemPool::HasNoInputsOf(const CTransaction &tx) const
 {
-    if (tx.HasZerocoinSpendInputs())
-        return true;
     for (unsigned int i = 0; i < tx.vin.size(); i++)
         if (exists(tx.vin[i].prevout.hash))
             return false;

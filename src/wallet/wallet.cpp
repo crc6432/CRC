@@ -3415,7 +3415,7 @@ CWallet::CommitResult CWallet::CommitTransaction(CTransactionRef tx, CReserveKey
             AddToWallet(wtxNew);
 
             // Notify that old coins are spent
-            if (!wtxNew.tx->HasZerocoinSpendInputs()) {
+            if (true) {
                 std::set<uint256> updated_hashes;
                 for (const CTxIn& txin : wtxNew.tx->vin) {
                     // notify only once

@@ -579,7 +579,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
             return false;
         }
 
-        bool fCLTVIsActivated = consensus.NetworkUpgradeActive(chainHeight, Consensus::UPGRADE_BIP65);
+        bool fCLTVIsActivated = true;
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
@@ -1005,7 +1005,7 @@ static bool SkipInvalidUTXOS(int nHeight)
 void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, CTxUndo& txundo, int nHeight, bool fSkipInvalid)
 {
     // mark inputs spent
-    if (!tx.IsCoinBase() && !tx.HasZerocoinSpendInputs()) {
+    if (!tx.IsCoinBase()) {
         txundo.vprevout.reserve(tx.vin.size());
         for (const CTxIn& txin : tx.vin) {
             txundo.vprevout.emplace_back();
@@ -1094,7 +1094,7 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
 
 bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &inputs, bool fScriptChecks, unsigned int flags, bool cacheStore, PrecomputedTransactionData& precomTxData, std::vector<CScriptCheck> *pvChecks)
 {
-    if (!tx.IsCoinBase() && !tx.HasZerocoinSpendInputs()) {
+    if (!tx.IsCoinBase()) {
 
         if (!Consensus::CheckTxInputs(tx, state, inputs, GetSpendHeight(inputs)))
             return false;
@@ -1312,9 +1312,6 @@ DisconnectResult DisconnectBlock(CBlock& block, const CBlockIndex* pindex, CCoin
     for (int i = block.vtx.size() - 1; i >= 0; i--) {
         const CTransaction& tx = *block.vtx[i];
 
-        if (!DisconnectZerocoinTx(tx))
-            return DISCONNECT_FAILED;
-
         const uint256& hash = tx.GetHash();
 
         // if tx is a budget collateral tx, remove relative object
@@ -1323,7 +1320,7 @@ DisconnectResult DisconnectBlock(CBlock& block, const CBlockIndex* pindex, CCoin
         // Check that all outputs are available and match the outputs in the block itself
         // exactly.
         for (size_t o = 0; o < tx.vout.size(); o++) {
-            if (!tx.vout[o].scriptPubKey.IsUnspendable() && !tx.vout[o].IsZerocoinMint()) {
+            if (!tx.vout[o].scriptPubKey.IsUnspendable()) {
                 COutPoint out(hash, o);
                 Coin coin;
                 view.SpendCoin(out, &coin);
@@ -1333,8 +1330,8 @@ DisconnectResult DisconnectBlock(CBlock& block, const CBlockIndex* pindex, CCoin
             }
         }
 
-        // not coinbases or zerocoinspend because they dont have traditional inputs
-        if (tx.IsCoinBase() || tx.HasZerocoinSpendInputs())
+        // not coinbases because they dont have traditional inputs
+        if (tx.IsCoinBase())
             continue;
 
         // Sapling, update unspent nullifiers
@@ -1496,7 +1493,6 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     unsigned int nSigOps = 0;
     CDiskTxPos pos(pindex->GetBlockPos(), GetSizeOfCompactSize(block.vtx.size()));
     std::vector<std::pair<uint256, CDiskTxPos> > vPos;
-    std::vector<std::pair<CBigNum, uint256> > vSpends;
     vPos.reserve(block.vtx.size());
     CBlockUndo blockundo;
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
@@ -1667,10 +1663,6 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
         pindex->RaiseValidity(BLOCK_VALID_SCRIPTS);
         setDirtyBlockIndex.insert(pindex);
     }
-
-    // Flush spend/mint info to disk
-    if (!vSpends.empty() && !zerocoinDB->WriteCoinSpendBatch(vSpends))
-        return AbortNode(state, "Failed to record coin serials to database");
 
     if (fTxIndex)
         if (!pblocktree->WriteTxIndex(vPos))

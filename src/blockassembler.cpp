@@ -179,7 +179,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     assert(pindexPrev);
     nHeight = pindexPrev->nHeight + 1;
 
-    pblock->nVersion = ComputeBlockVersion(chainparams.GetConsensus(), nHeight);
+    pblock->nVersion = 9;
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
     if (Params().IsRegTestNet()) {
@@ -480,31 +480,6 @@ void BlockAssembler::addPackageTxs()
     }
 }
 
-void BlockAssembler::appendSaplingTreeRoot()
-{
-    // Update header
-    pblock->hashFinalSaplingRoot = CalculateSaplingTreeRoot(pblock, nHeight, chainparams);
-}
-
-uint256 CalculateSaplingTreeRoot(CBlock* pblock, int nHeight, const CChainParams& chainparams)
-{
-    if (NetworkUpgradeActive(nHeight, chainparams.GetConsensus(), Consensus::UPGRADE_V5_0)) {
-        SaplingMerkleTree sapling_tree;
-        assert(pcoinsTip->GetSaplingAnchorAt(pcoinsTip->GetBestAnchor(), sapling_tree));
-
-        // Update the Sapling commitment tree.
-        for (const auto &tx : pblock->vtx) {
-            if (tx->IsShieldedTx()) {
-                for (const OutputDescription &odesc : tx->sapData->vShieldedOutput) {
-                    sapling_tree.append(odesc.cmu);
-                }
-            }
-        }
-        return sapling_tree.root();
-    }
-    return UINT256_ZERO;
-}
-
 bool SolveBlock(std::shared_ptr<CBlock>& pblock, int nHeight)
 {
     unsigned int extraNonce = 0;
@@ -533,20 +508,4 @@ void IncrementExtraNonce(std::shared_ptr<CBlock>& pblock, int nHeight, unsigned 
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
 }
 
-int32_t ComputeBlockVersion(const Consensus::Params& consensus, int nHeight)
-{
-    if (NetworkUpgradeActive(nHeight, consensus, Consensus::UPGRADE_V5_0)) {
-        return CBlockHeader::CURRENT_VERSION;       // v11 (since 5.2.99)
-    } else if (consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_V4_0)) {
-        return 7;
-    } else if (consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_V3_4)) {
-        return 6;
-    } else if (consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_BIP65)) {
-        return 5;
-    } else if (consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ZC)) {
-        return 4;
-    } else {
-        return 3;
-    }
-}
 

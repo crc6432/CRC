@@ -201,7 +201,6 @@ private:
 bool SolveBlock(std::shared_ptr<CBlock>& pblock, int nHeight);
 void IncrementExtraNonce(std::shared_ptr<CBlock>& pblock, int nHeight, unsigned int& nExtraNonce);
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);
-int32_t ComputeBlockVersion(const Consensus::Params& consensusParams, int nHeight);
 
 // Visible for testing purposes only
 bool CreateCoinbaseTx(CBlock* pblock, const CScript& scriptPubKeyIn, CBlockIndex* pindexPrev);
