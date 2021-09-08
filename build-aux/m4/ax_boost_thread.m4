@@ -30,7 +30,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 32
+#serial 33
 
 AC_DEFUN([AX_BOOST_THREAD],
 [
@@ -50,26 +50,41 @@ AC_DEFUN([AX_BOOST_THREAD],
         ],
         [want_boost="yes"]
     )
+
     if test "x$want_boost" = "xyes"; then
         AC_REQUIRE([AC_PROG_CC])
         AC_REQUIRE([AC_CANONICAL_BUILD])
         CPPFLAGS_SAVED="$CPPFLAGS"
         CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
         export CPPFLAGS
+
         LDFLAGS_SAVED="$LDFLAGS"
         LDFLAGS="$LDFLAGS $BOOST_LDFLAGS"
         export LDFLAGS
+
         AC_CACHE_CHECK(whether the Boost::Thread library is available,
                        ax_cv_boost_thread,
         [AC_LANG_PUSH([C++])
              CXXFLAGS_SAVE=$CXXFLAGS
-             if test "x$host_os" = "xsolaris" ; then
-                 CXXFLAGS="-pthreads $CXXFLAGS"
-             elif test "x$host_os" = "xmingw32" ; then
-                 CXXFLAGS="-mthreads $CXXFLAGS"
-             else
-                CXXFLAGS="-pthread $CXXFLAGS"
-             fi
+
+             case "x$host_os" in
+                 xsolaris )
+                     CXXFLAGS="-pthreads $CXXFLAGS"
+                     break;
+                     ;;
+                 xmingw32 )
+                     CXXFLAGS="-mthreads $CXXFLAGS"
+                     break;
+                     ;;
+                 *android* )
+                     break;
+                     ;;
+                 * )
+                     CXXFLAGS="-pthread $CXXFLAGS"
+                     break;
+                     ;;
+             esac
+
              AC_COMPILE_IFELSE([
                  AC_LANG_PROGRAM(
                      [[@%:@include <boost/thread/thread.hpp>]],
@@ -80,17 +95,30 @@ AC_DEFUN([AX_BOOST_THREAD],
              AC_LANG_POP([C++])
         ])
         if test "x$ax_cv_boost_thread" = "xyes"; then
-           if test "x$host_os" = "xsolaris" ; then
-              BOOST_CPPFLAGS="-pthreads $BOOST_CPPFLAGS"
-           elif test "x$host_os" = "xmingw32" ; then
-              BOOST_CPPFLAGS="-mthreads $BOOST_CPPFLAGS"
-           else
-              BOOST_CPPFLAGS="-pthread $BOOST_CPPFLAGS"
-           fi
+            case "x$host_os" in
+                xsolaris )
+                    BOOST_CPPFLAGS="-pthreads $BOOST_CPPFLAGS"
+                    break;
+                    ;;
+                xmingw32 )
+                    BOOST_CPPFLAGS="-mthreads $BOOST_CPPFLAGS"
+                    break;
+                    ;;
+                *android* )
+                    break;
+                    ;;
+                * )
+                    BOOST_CPPFLAGS="-pthread $BOOST_CPPFLAGS"
+                    break;
+                    ;;
+            esac
+
             AC_SUBST(BOOST_CPPFLAGS)
+
             AC_DEFINE(HAVE_BOOST_THREAD,,
                       [define if the Boost::Thread library is available])
             BOOSTLIBDIR=`echo $BOOST_LDFLAGS | sed -e 's/@<:@^\/@:>@*//'`
+
             LDFLAGS_SAVE=$LDFLAGS
                         case "x$host_os" in
                           *bsd* )
@@ -113,12 +141,14 @@ AC_DEFUN([AX_BOOST_THREAD],
                                  [link_thread="no"])
                 done
                 fi
+
             else
                for ax_lib in $ax_boost_user_thread_lib boost_thread-$ax_boost_user_thread_lib; do
                       AC_CHECK_LIB($ax_lib, exit,
                                    [link_thread="yes"; break],
                                    [link_thread="no"])
                   done
+
             fi
             if test "x$ax_lib" = "x"; then
                 AC_MSG_ERROR(Could not find a version of the Boost::Thread library!)
@@ -139,6 +169,9 @@ AC_DEFUN([AX_BOOST_THREAD],
                     xmingw32 )
                         break;
                         ;;
+                    *android* )
+                        break;
+                        ;;
                     * )
                         BOOST_THREAD_LIB="$BOOST_THREAD_LIB -lpthread"
                         break;
@@ -147,6 +180,7 @@ AC_DEFUN([AX_BOOST_THREAD],
                 AC_SUBST(BOOST_THREAD_LIB)
             fi
         fi
+
         CPPFLAGS="$CPPFLAGS_SAVED"
         LDFLAGS="$LDFLAGS_SAVED"
     fi
