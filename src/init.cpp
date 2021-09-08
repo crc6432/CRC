@@ -295,29 +295,13 @@ void PrepareShutdown()
         pcoinscatcher.reset();
         pcoinsdbview.reset();
         pblocktree.reset();
-        zerocoinDB.reset();
-        accumulatorCache.reset();
         pSporkDB.reset();
-        deterministicMNManager.reset();
-        evoDb.reset();
     }
 #ifdef ENABLE_WALLET
     for (CWalletRef pwallet : vpwallets) {
         pwallet->Flush(true);
     }
 #endif
-
-    if (pEvoNotificationInterface) {
-        UnregisterValidationInterface(pEvoNotificationInterface);
-        delete pEvoNotificationInterface;
-        pEvoNotificationInterface = nullptr;
-    }
-
-    if (activeMasternodeManager) {
-        UnregisterValidationInterface(activeMasternodeManager);
-        delete activeMasternodeManager;
-        activeMasternodeManager = nullptr;
-    }
 
 #if ENABLE_ZMQ
     if (pzmqNotificationInterface) {
@@ -1311,9 +1295,8 @@ bool AppInitMain()
         fs::path blocksDir = GetBlocksDir();
         fs::path chainstateDir = GetDataDir() / "chainstate";
         fs::path sporksDir = GetDataDir() / "sporks";
-        fs::path zerocoinDir = GetDataDir() / "zerocoin";
 
-        LogPrintf("Deleting blockchain folders blocks, chainstate, sporks and zerocoin\n");
+        LogPrintf("Deleting blockchain folders blocks, chainstate and sporks\n");
         // We delete in 4 individual steps in case one of the folder is missing already
         try {
             if (fs::exists(blocksDir)){
@@ -1329,11 +1312,6 @@ bool AppInitMain()
             if (fs::exists(sporksDir)){
                 fs::remove_all(sporksDir);
                 LogPrintf("-resync: folder deleted: %s\n", sporksDir.string().c_str());
-            }
-
-            if (fs::exists(zerocoinDir)){
-                fs::remove_all(zerocoinDir);
-                LogPrintf("-resync: folder deleted: %s\n", zerocoinDir.string().c_str());
             }
         } catch (const fs::filesystem_error& error) {
             LogPrintf("Failed to delete blockchain folders %s\n", error.what());
@@ -1566,16 +1544,7 @@ bool AppInitMain()
                 pcoinsdbview.reset();
                 pcoinscatcher.reset();
                 pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
-
-                //PIVX specific: zerocoin and spork DB's
-                zerocoinDB.reset(new CZerocoinDB(0, false, fReindex));
                 pSporkDB.reset(new CSporkDB(0, false, false));
-                accumulatorCache.reset(new AccumulatorCache(zerocoinDB.get()));
-
-                deterministicMNManager.reset();
-                evoDb.reset();
-                evoDb.reset(new CEvoDB(nEvoDbCache, false, fReindex));
-                deterministicMNManager.reset(new CDeterministicMNManager(*evoDb));
 
                 if (fReset) {
                     pblocktree->WriteReindexing(true);
@@ -1653,30 +1622,6 @@ bool AppInitMain()
                         break;
                     }
                     assert(chainActive.Tip() != nullptr);
-                }
-
-                if (Params().NetworkIDString() == CBaseChainParams::MAIN) {
-                    // Prune zerocoin invalid outs if they were improperly stored in the coins database
-                    LOCK(cs_main);
-                    int chainHeight = chainActive.Height();
-                    bool fZerocoinActive = chainHeight > 0 && consensus.NetworkUpgradeActive(chainHeight, Consensus::UPGRADE_ZC);
-
-                    uiInterface.InitMessage(_("Loading/Pruning invalid outputs..."));
-                    if (fZerocoinActive) {
-                        if (!pcoinsTip->PruneInvalidEntries()) {
-                            strLoadError = _("System error while flushing the chainstate after pruning invalid entries. Possible corrupt database.");
-                            break;
-                        }
-                        MoneySupply.Update(pcoinsTip->GetTotalAmount(), chainHeight);
-                        // No need to keep the invalid outs in memory. Clear the map 100 blocks after the last invalid UTXO
-                        if (chainHeight > consensus.height_last_invalid_UTXO + 100) {
-                            invalid_out::setInvalidOutPoints.clear();
-                        }
-                    } else {
-                        // Populate list of invalid/fraudulent outpoints that are banned from the chain
-                        // They will not be added to coins view
-                        invalid_out::LoadOutpoints();
-                    }
                 }
 
                 if (!is_coinsview_empty) {

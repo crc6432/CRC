@@ -133,15 +133,6 @@ void ScriptPubKeyToUniv(const CScript& scriptPubKey,
     if (fIncludeHex)
         out.pushKV("hex", HexStr(scriptPubKey));
 
-    if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {
-        if (!scriptPubKey.empty() && scriptPubKey.IsZerocoinMint()) {
-            out.pushKV("type", "zerocoinmint"); // unsupported type.
-        } else {
-            out.pushKV("type", GetTxnOutputType(type));
-        }
-        return;
-    }
-
     out.pushKV("reqSigs", nRequired);
     out.pushKV("type", GetTxnOutputType(type));
 

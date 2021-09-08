@@ -7,7 +7,6 @@
 #define BITCOIN_CONSENSUS_PARAMS_H
 
 #include "amount.h"
-#include "libzerocoin/Params.h"
 #include "optional.h"
 #include "uint256.h"
 #include <map>
@@ -116,16 +115,6 @@ struct Params {
     std::string strSporkPubKeyOld;
     int64_t nTime_EnforceNewSporkKey;
     int64_t nTime_RejectOldSporkKey;
-
-    // height-based activations
-    int height_last_invalid_UTXO;
-    int height_last_ZC_AccumCheckpoint;
-    int height_last_ZC_WrappedSerials;
-    int height_ZC_RecalcAccumulators;
-
-    // validation by-pass
-    int64_t nPivxBadBlockTime;
-    unsigned int nPivxBadBlockBits;
 
     // Map with network updates
     NetworkUpgrade vUpgrades[MAX_NETWORK_UPGRADES];

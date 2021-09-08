@@ -405,11 +405,6 @@ public:
      */
     CAmount GetTotalAmount() const;
 
-    /*
-     * Prune zerocoin mints and frozen outputs - do it once, after initialization
-     */
-    bool PruneInvalidEntries();
-
 
 private:
     CCoinsMap::iterator FetchCoin(const COutPoint& outpoint) const;

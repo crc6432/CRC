@@ -31,8 +31,6 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
-    uint256 nAccumulatorCheckpoint;             // only for version 4, 5 and 6.
-    uint256 hashFinalSaplingRoot;               // only for version 8+
 
     CBlockHeader()
     {
@@ -42,13 +40,6 @@ public:
     SERIALIZE_METHODS(CBlockHeader, obj) {
         READWRITE(obj.nVersion, obj.hashPrevBlock, obj.hashMerkleRoot, obj.nTime, obj.nBits, obj.nNonce);
 
-        //zerocoin active, header changes to include accumulator checksum
-        if(obj.nVersion > 3 && obj.nVersion < 7)
-            READWRITE(obj.nAccumulatorCheckpoint);
-
-        // Sapling active
-        if (obj.nVersion >= 8)
-            READWRITE(obj.hashFinalSaplingRoot);
     }
 
     void SetNull()
@@ -59,8 +50,6 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
-        nAccumulatorCheckpoint.SetNull();
-        hashFinalSaplingRoot.SetNull();
     }
 
     bool IsNull() const

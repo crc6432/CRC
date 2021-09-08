@@ -1365,10 +1365,6 @@ UniValue getblockindexstats(const JSONRPCRequest& request) {
         for (int idx = firstTxIndex; idx < ntx; idx++) {
             const CTransaction& tx = *(block.vtx[idx]);
 
-            // zerocoin txes have fixed fee, don't count them here.
-            if (tx.ContainsZerocoins())
-                continue;
-
             // Transaction size
             nBytes += GetSerializeSize(tx, CLIENT_VERSION);
 

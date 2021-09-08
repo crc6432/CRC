@@ -20,7 +20,6 @@
 #include "tinyformat.h"
 #include "uint256.h"
 #include "util/system.h"
-#include "libzerocoin/Denominations.h"
 
 #include <vector>
 
@@ -194,11 +193,9 @@ public:
     //! block header
     int32_t nVersion{0};
     uint256 hashMerkleRoot{};
-    uint256 hashFinalSaplingRoot{};
     uint32_t nTime{0};
     uint32_t nBits{0};
     uint32_t nNonce{0};
-    uint256 nAccumulatorCheckpoint{};
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId{0};
@@ -299,13 +296,7 @@ public:
             READWRITE(obj.nTime);
             READWRITE(obj.nBits);
             READWRITE(obj.nNonce);
-            if(obj.nVersion > 3 && obj.nVersion < 7)
-                READWRITE(obj.nAccumulatorCheckpoint);
 
-            // Sapling blocks
-            if (obj.nVersion >= 8) {
-                READWRITE(obj.hashFinalSaplingRoot);
-                READWRITE(obj.nSaplingValue);
             }
         } else if (nSerVersion > DBI_OLD_SER_VERSION && ser_action.ForRead()) {
             // Serialization with CLIENT_VERSION = 4009901
@@ -320,10 +311,7 @@ public:
             READWRITE(obj.nTime);
             READWRITE(obj.nBits);
             READWRITE(obj.nNonce);
-            if (obj.nVersion > 3) {
-                READWRITE(mapZerocoinSupply);
-                if (obj.nVersion < 7) READWRITE(obj.nAccumulatorCheckpoint);
-            }
+
         } else if (ser_action.ForRead()) {
             // Serialization with CLIENT_VERSION = 4009900-
             int64_t nMint = 0;
@@ -354,13 +342,6 @@ public:
             READWRITE(obj.nTime);
             READWRITE(obj.nBits);
             READWRITE(obj.nNonce);
-            if (obj.nVersion > 3) {
-                std::map<libzerocoin::CoinDenomination, int64_t> mapZerocoinSupply;
-                std::vector<libzerocoin::CoinDenomination> vMintDenominationsInBlock;
-                READWRITE(obj.nAccumulatorCheckpoint);
-                READWRITE(mapZerocoinSupply);
-                READWRITE(vMintDenominationsInBlock);
-            }
         }
     }
 
@@ -373,10 +354,6 @@ public:
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
-        if (nVersion > 3 && nVersion < 7)
-            block.nAccumulatorCheckpoint = nAccumulatorCheckpoint;
-        if (nVersion >= 8)
-            block.hashFinalSaplingRoot = hashFinalSaplingRoot;
         return block.GetHash();
     }
 
