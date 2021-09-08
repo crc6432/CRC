@@ -78,23 +78,6 @@ if BUILD_BITCOIN_UTILS
   bin_PROGRAMS += pivx-cli pivx-tx
 endif
 
-LIBSAPLING_H = \
-  sapling/sapling.h \
-  bech32.h \
-  sapling/key_io_sapling.h \
-  sapling/sapling_core_write.h \
-  sapling/sapling_util.h \
-  sapling/prf.h \
-  sapling/noteencryption.h \
-  sapling/address.h \
-  sapling/note.h \
-  sapling/zip32.h \
-  sapling/saplingscriptpubkeyman.h \
-  sapling/incrementalmerkletree.h \
-  sapling/sapling_transaction.h \
-  sapling/transaction_builder.h \
-  sapling/sapling_operation.h
-
 .PHONY: FORCE cargo-build check-symbols check-security
 # pivx core #
 BITCOIN_CORE_H = \
@@ -162,14 +145,6 @@ BITCOIN_CORE_H = \
   dbwrapper.h \
   limitedmap.h \
   logging.h \
-  legacy/validation_zerocoin_legacy.h \
-  sapling/sapling_validation.h \
-  budget/budgetdb.h \
-  budget/budgetmanager.h \
-  budget/budgetproposal.h \
-  budget/budgetvote.h \
-  budget/finalizedbudget.h \
-  budget/finalizedbudgetvote.h \
   mapport.h \
   memusage.h \
   masternode.h \
@@ -286,18 +261,10 @@ libbitcoin_server_a_SOURCES = \
   consensus/params.cpp \
   consensus/tx_verify.cpp \
   flatfile.cpp \
-  consensus/zerocoin_verify.cpp \
-  evo/deterministicmns.cpp \
-  evo/evodb.cpp \
-  evo/evonotificationinterface.cpp \
-  evo/providertx.cpp \
-  evo/specialtx.cpp \
   httprpc.cpp \
   httpserver.cpp \
   init.cpp \
   dbwrapper.cpp \
-  legacy/validation_zerocoin_legacy.cpp \
-  sapling/sapling_validation.cpp \
   merkleblock.cpp \
   blockassembler.cpp \
   mapport.cpp \
@@ -310,13 +277,10 @@ libbitcoin_server_a_SOURCES = \
   pow.cpp \
   rest.cpp \
   rpc/blockchain.cpp \
-  rpc/masternode.cpp \
-  rpc/budget.cpp \
   rpc/mining.cpp \
   rpc/misc.cpp \
   rpc/net.cpp \
   rpc/rawtransaction.cpp \
-  rpc/rpcevo.cpp \
   rpc/server.cpp \
   script/sigcache.cpp \
   script/ismine.cpp \
@@ -324,13 +288,10 @@ libbitcoin_server_a_SOURCES = \
   timedata.cpp \
   torcontrol.cpp \
   txdb.cpp \
-  sapling/sapling_txdb.cpp \
   txmempool.cpp \
   validation.cpp \
   validationinterface.cpp \
-  zpivchain.cpp \
-  $(BITCOIN_CORE_H) \
-  $(LIBSAPLING_H)
+  $(BITCOIN_CORE_H)
 
 if ENABLE_ZMQ
 libbitcoin_zmq_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(ZMQ_CFLAGS)
