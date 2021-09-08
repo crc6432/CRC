@@ -10,6 +10,7 @@
  * @license    This project is released under the MIT license.
  **/
 // Copyright (c) 2017-2020 The PIVX developers
+// Copyright (c) 2021 The Thaicoin developers
 
 #ifndef COINSPEND_H_
 #define COINSPEND_H_
