@@ -179,9 +179,6 @@ private:
     // Methods for how to add transactions to a block.
     /** Add transactions based on feerate including unconfirmed ancestors */
     void addPackageTxs();
-    /** Add the tip updated incremental merkle tree to the header */
-    void appendSaplingTreeRoot();
-
     // helper functions for addPackageTxs()
     /** Remove confirmed (inBlock) entries from given set */
     void onlyUnconfirmed(CTxMemPool::setEntries& testSet);

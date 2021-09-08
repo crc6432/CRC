@@ -325,9 +325,7 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/walletdb.cpp \
   wallet/walletutil.cpp \
   stakeinput.cpp \
-  zpiv/zpos.cpp \
-  $(BITCOIN_CORE_H) \
-  $(LIBSAPLING_H)
+  $(BITCOIN_CORE_H)
 
 # crypto primitives library
 crypto_libbitcoin_crypto_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIC_FLAGS)
@@ -444,8 +442,7 @@ libbitcoin_common_a_SOURCES = \
   script/script_error.cpp \
   spork.cpp \
   sporkdb.cpp \
-  $(BITCOIN_CORE_H) \
-  $(LIBSAPLING_H)
+  $(BITCOIN_CORE_H)
 
 # util: shared between all executables.
 # This library *must* be included to make sure that the glibc
@@ -477,35 +474,10 @@ libbitcoin_util_a_SOURCES = \
   utilstrencodings.cpp \
   util/string.cpp \
   utiltime.cpp \
-  $(BITCOIN_CORE_H) \
-  $(LIBSAPLING_H)
+  $(BITCOIN_CORE_H)
 
 if GLIBC_BACK_COMPAT
 libbitcoin_util_a_SOURCES += compat/glibc_compat.cpp
-AM_LDFLAGS += $(COMPAT_LDFLAGS)
-endif
-
-# sapling protocol primitives #
-libsapling_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIC_FLAGS) $(BITCOIN_INCLUDES)
-libsapling_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libsapling_a_SOURCES = \
-  bech32.cpp \
-  sapling/sapling_util.cpp \
-  sapling/key_io_sapling.cpp \
-  sapling/sapling_core_write.cpp \
-  sapling/prf.cpp \
-  sapling/noteencryption.cpp \
-  sapling/address.cpp \
-  sapling/note.cpp \
-  sapling/zip32.cpp \
-  sapling/crypter_sapling.cpp \
-  sapling/saplingscriptpubkeyman.cpp \
-  sapling/incrementalmerkletree.cpp \
-  sapling/transaction_builder.cpp \
-  sapling/sapling_operation.cpp
-
-if GLIBC_BACK_COMPAT
-libsapling_a_SOURCES += compat/glibc_compat.cpp
 AM_LDFLAGS += $(COMPAT_LDFLAGS)
 endif
 
@@ -514,8 +486,7 @@ libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_cli_a_SOURCES = \
   rpc/client.cpp \
-  $(BITCOIN_CORE_H) \
-  $(LIBSAPLING_H)
+  $(BITCOIN_CORE_H)
 
 nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
@@ -534,11 +505,9 @@ pivxd_LDADD = \
   $(LIBBITCOIN_WALLET) \
   $(LIBBITCOIN_COMMON) \
   $(LIBUNIVALUE) \
-  $(LIBBITCOIN_ZEROCOIN) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_ZMQ) \
   $(LIBBITCOIN_CRYPTO) \
-  $(LIBSAPLING) \
   $(LIBLEVELDB) \
   $(LIBLEVELDB_SSE42) \
   $(LIBMEMENV) \
@@ -629,11 +598,9 @@ CLEANFILES += crypto/*.gcda crypto/*.gcno
 CLEANFILES += evo/*.gcda evo/*.gcno
 CLEANFILES += interfaces/*.gcda interfaces/*.gcno
 CLEANFILES += legacy/*.gcda legacy/*.gcno
-CLEANFILES += libzerocoin/*.gcda libzerocoin/*.gcno
 CLEANFILES += policy/*.gcda policy/*.gcno
 CLEANFILES += primitives/*.gcda primitives/*.gcno
 CLEANFILES += rpc/*.gcda rpc/*.gcno
-CLEANFILES += sapling/*.gcda sapling/*.gcno
 CLEANFILES += script/*.gcda script/*.gcno
 CLEANFILES += support/*.gcda support/*.gcno
 CLEANFILES += test/librust/*.gcda test/librust/*.gcno
@@ -642,7 +609,6 @@ CLEANFILES += util/*.gcda util/*.gcno
 CLEANFILES += wallet/*.gcda wallet/*.gcno
 CLEANFILES += wallet/test/*.gcda wallet/test/*.gcno
 CLEANFILES += zmq/*.gcda zmq/*.gcno
-CLEANFILES += zpiv/*.gcda zpiv/*.gcno
 CLEANFILES += obj/build.h
 
 CTAES_DIST =  crypto/ctaes/bench.c
