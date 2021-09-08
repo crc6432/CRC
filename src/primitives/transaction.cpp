@@ -114,41 +114,12 @@ CTransaction::CTransaction() : vin(), vout(), nVersion(CTransaction::CURRENT_VER
 CTransaction::CTransaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nType(tx.nType), nLockTime(tx.nLockTime), sapData(tx.sapData), extraPayload(tx.extraPayload), hash(ComputeHash()) {}
 CTransaction::CTransaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nType(tx.nType), nLockTime(tx.nLockTime), sapData(tx.sapData), extraPayload(tx.extraPayload), hash(ComputeHash()) {}
 
-bool CTransaction::HasZerocoinSpendInputs() const
-{
-    for (const CTxIn& txin: vin) {
-        if (txin.IsZerocoinSpend() || txin.IsZerocoinPublicSpend())
-            return true;
-    }
-    return false;
-}
-
-bool CTransaction::HasZerocoinMintOutputs() const
-{
-    for(const CTxOut& txout : vout) {
-        if (txout.IsZerocoinMint())
-            return true;
-    }
-    return false;
-}
-
-bool CTransaction::HasZerocoinPublicSpendInputs() const
-{
-    // The wallet only allows publicSpend inputs in the same tx and not a combination between piv and zpiv
-    for(const CTxIn& txin : vin) {
-        if (txin.IsZerocoinPublicSpend())
-            return true;
-    }
-    return false;
-}
-
 bool CTransaction::IsCoinStake() const
 {
     if (vin.empty())
         return false;
 
-    bool fAllowNull = vin[0].IsZerocoinSpend();
-    if (vin[0].prevout.IsNull() && !fAllowNull)
+    if (vin[0].prevout.IsNull())
         return false;
 
     return (vout.size() >= 2 && vout[0].IsEmpty());
