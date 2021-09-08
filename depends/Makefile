@@ -4,29 +4,6 @@
 print-%:
 	@echo $* = $($*)
 
-# When invoking a sub-make, keep only the command line variable definitions
-# matching the pattern in the filter function.
-#
-# e.g. invoking:
-#   $ make A=1 C=1 print-MAKEOVERRIDES print-MAKEFLAGS
-#
-# with the following in the Makefile:
-#   MAKEOVERRIDES := $(filter A=% B=%,$(MAKEOVERRIDES))
-#
-# will print:
-#   MAKEOVERRIDES = A=1
-#   MAKEFLAGS = -- A=1
-#
-# this is because as the GNU make manual says:
-#   The command line variable definitions really appear in the variable
-#   MAKEOVERRIDES, and MAKEFLAGS contains a reference to this variable.
-#
-# and since the GNU make manual also says:
-#   variables defined on the command line are passed to the sub-make through
-#   MAKEFLAGS
-#
-# this means that sub-makes will be invoked as if:
-#   $(MAKE) A=1 blah blah
 MAKEOVERRIDES := $(filter V=%,$(MAKEOVERRIDES))
 SOURCES_PATH ?= $(BASEDIR)/sources
 WORK_PATH = $(BASEDIR)/work
@@ -37,8 +14,7 @@ NO_WALLET ?=
 NO_ZMQ ?=
 NO_UPNP ?=
 NO_NATPMP ?=
-NO_RUST ?=
-FALLBACK_DOWNLOAD_PATH ?= https://depends.pivx.org
+FALLBACK_DOWNLOAD_PATH ?= https://bitcoincore.org/depends-sources
 
 BUILD = $(shell ./config.guess)
 HOST ?= $(BUILD)
@@ -47,11 +23,8 @@ BASEDIR = $(CURDIR)
 HASH_LENGTH:=11
 DOWNLOAD_CONNECT_TIMEOUT:=30
 DOWNLOAD_RETRIES:=3
-CRATE_REGISTRY:=vendored-sources
-CRATE_ARCHIVE = $(SOURCES_PATH)/vendored-crates.tar.gz
 HOST_ID_SALT ?= salt
 BUILD_ID_SALT ?= salt
-
 
 host:=$(BUILD)
 ifneq ($(HOST),)
@@ -132,7 +105,6 @@ qt_packages_$(NO_QT) = $(qt_packages) $(qt_$(host_os)_packages) $(qt_$(host_arch
 wallet_packages_$(NO_WALLET) = $(wallet_packages)
 upnp_packages_$(NO_UPNP) = $(upnp_packages)
 natpmp_packages_$(NO_NATPMP) = $(natpmp_packages)
-
 zmq_packages_$(NO_ZMQ) = $(zmq_packages)
 
 packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(qt_packages_) $(wallet_packages_) $(upnp_packages_) $(natpmp_packages_)
@@ -148,7 +120,7 @@ endif
 
 all_packages = $(packages) $(native_packages)
 
-meta_depends = Makefile funcs.mk builders/default.mk hosts/default.mk hosts/$(host_os).mk builders/$(build_os).mk cargo-checksum.sh
+meta_depends = Makefile funcs.mk builders/default.mk hosts/default.mk hosts/$(host_os).mk builders/$(build_os).mk
 
 $(host_arch)_$(host_os)_native_binutils?=$($(host_os)_native_binutils)
 $(host_arch)_$(host_os)_native_toolchain?=$($(host_os)_native_toolchain)
@@ -169,12 +141,6 @@ $(host_prefix)/.stamp_$(final_build_id): $(native_packages) $(packages)
 	$(AT)echo copying packages: $^
 	$(AT)echo to: $(@D)
 	$(AT)cd $(@D); $(foreach package,$^, tar xf $($(package)_cached); )
-	$(AT)if test -f "$(CRATE_ARCHIVE)"; \
-	then echo Extracting pre-vendored crates from $(CRATE_ARCHIVE)...; \
-		tar xf $(CRATE_ARCHIVE) -C $(@D); \
-	else echo Vendoring crates...; \
-		$(@D)/native/bin/cargo vendor --locked --manifest-path $(BASEDIR)/../Cargo.toml $(@D)/$(CRATE_REGISTRY); \
-	fi
 	$(AT)touch $@
 
 $(host_prefix)/share/config.site : config.site.in $(host_prefix)/.stamp_$(final_build_id)
@@ -192,7 +158,6 @@ $(host_prefix)/share/config.site : config.site.in $(host_prefix)/.stamp_$(final_
             -e 's|@CXXFLAGS@|$(strip $(host_CXXFLAGS) $(host_$(release_type)_CXXFLAGS))|' \
             -e 's|@CPPFLAGS@|$(strip $(host_CPPFLAGS) $(host_$(release_type)_CPPFLAGS))|' \
             -e 's|@LDFLAGS@|$(strip $(host_LDFLAGS) $(host_$(release_type)_LDFLAGS))|' \
-            -e 's|@rust_target@|$(call rust_target,native_rust,$(canonical_host),$(host_os))|' \
             -e 's|@allow_host_packages@|$(ALLOW_HOST_PACKAGES)|' \
             -e 's|@no_qt@|$(NO_QT)|' \
             -e 's|@no_zmq@|$(NO_ZMQ)|' \
@@ -240,18 +205,6 @@ clean:
 install: check-packages $(host_prefix)/share/config.site
 
 
-crates_download_dir=$(base_download_dir)/crates
-download-crates: native_rust
-	$(AT)echo Vendoring crates...
-	$(AT)mkdir -p $(SOURCES_PATH)
-	$(AT)rm -rf $(crates_download_dir)
-	$(AT)mkdir -p $(crates_download_dir)
-	$(AT)tar xf $(native_rust_cached) -C $(crates_download_dir)
-	$(AT)$(crates_download_dir)/native/bin/cargo vendor --locked --manifest-path $(BASEDIR)/../Cargo.toml $(crates_download_dir)/$(CRATE_REGISTRY)
-	$(AT)cd $(crates_download_dir); find $(CRATE_REGISTRY) | sort | tar --no-recursion -czf $(CRATE_ARCHIVE) -T -
-	$(AT)rm -rf $(crates_download_dir)
-
-
 download-one: check-sources $(all_sources)
 
 download-osx:
@@ -260,8 +213,7 @@ download-linux:
 	@$(MAKE) -s HOST=x86_64-unknown-linux-gnu download-one
 download-win:
 	@$(MAKE) -s HOST=x86_64-w64-mingw32 download-one
-download: download-crates download-osx download-linux download-win
+download: download-osx download-linux download-win
 
-$(foreach package,$(all_packages),$(eval $(call ext_add_stages,$(package))))
 
-.PHONY: install cached clean clean-all download-crates download-one download-osx download-linux download-win download check-packages check-sources
+.PHONY: install cached clean clean-all download-one download-osx download-linux download-win download check-packages check-sources
